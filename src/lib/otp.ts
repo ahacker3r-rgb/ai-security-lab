@@ -9,7 +9,11 @@ const OTP_TTL_MS = 10 * 60 * 1000;
 const MAX_VERIFY_ATTEMPTS = 5;
 const REQUEST_LIMIT = 3; // OTP requests per email per window
 const REQUEST_WINDOW_MS = 15 * 60 * 1000;
-const IP_REQUEST_LIMIT = 10; // OTP requests per IP per window (coarser guard)
+// Coarser guard against one IP spamming many different target emails. Kept
+// generous (not tight, like the per-email limit) because many legitimate
+// users can share one public IP - a classroom or school network behind one
+// NAT'd address is the expected case, not the exception, for this app.
+const IP_REQUEST_LIMIT = 100;
 
 function generateCode(): string {
   // Reject the DEV fallback code so it can never collide with a real one.
