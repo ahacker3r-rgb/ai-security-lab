@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  // "standalone" output is only for the self-hosted Docker deployment —
+  // it produces a different build artifact layout that conflicts with
+  // Vercel's own build pipeline (Vercel sets VERCEL=1 during its builds).
+  ...(process.env.VERCEL ? {} : { output: "standalone" as const }),
   async headers() {
     return [
       {
