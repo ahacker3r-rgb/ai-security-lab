@@ -34,7 +34,7 @@ export default async function LabPage({ params }: { params: Promise<{ slug: stri
 
   return (
     <>
-      <Nav email={user.email} role="STUDENT" />
+      <Nav user={{ email: user.email, role: "STUDENT" }} />
       <LabChat
         lab={{
           slug: labDef.slug,

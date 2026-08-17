@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { LogOut, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 
-export function Nav({ email, role }: { email: string; role: "STUDENT" | "INSTRUCTOR" }) {
+export type NavUser = { email: string; role: "STUDENT" | "INSTRUCTOR" } | null;
+
+export function Nav({ user }: { user: NavUser }) {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -19,8 +21,10 @@ export function Nav({ email, role }: { email: string; role: "STUDENT" | "INSTRUC
     { href: "/instructor", label: "Overview" },
     { href: "/token-lab", label: "Token Lab" },
   ];
+  const anonymousLinks = [{ href: "/token-lab", label: "Token Lab" }];
 
-  const links = role === "INSTRUCTOR" ? instructorLinks : studentLinks;
+  const links = !user ? anonymousLinks : user.role === "INSTRUCTOR" ? instructorLinks : studentLinks;
+  const homeHref = !user ? "/" : user.role === "INSTRUCTOR" ? "/instructor" : "/dashboard";
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -31,7 +35,7 @@ export function Nav({ email, role }: { email: string; role: "STUDENT" | "INSTRUC
   return (
     <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-10">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link href={role === "INSTRUCTOR" ? "/instructor" : "/dashboard"} className="flex items-center gap-3">
+        <Link href={homeHref} className="flex items-center gap-3">
           <Logo height={22} />
           <span className="hidden sm:block h-5 w-px bg-slate-800" />
           <span className="hidden sm:block text-sm font-medium text-slate-300">AI Security Lab</span>
@@ -50,10 +54,20 @@ export function Nav({ email, role }: { email: string; role: "STUDENT" | "INSTRUC
           ))}
         </nav>
         <div className="flex items-center gap-3">
-          <span className="hidden md:inline text-xs text-slate-500">{email}</span>
-          <Button variant="ghost" size="sm" onClick={handleLogout}>
-            <LogOut size={14} /> Logout
-          </Button>
+          {user ? (
+            <>
+              <span className="hidden md:inline text-xs text-slate-500">{user.email}</span>
+              <Button variant="ghost" size="sm" onClick={handleLogout}>
+                <LogOut size={14} /> Logout
+              </Button>
+            </>
+          ) : (
+            <Link href="/login">
+              <Button variant="ghost" size="sm">
+                <LogIn size={14} /> Sign in
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </header>

@@ -21,7 +21,7 @@ export default async function InstructorPage() {
 
   return (
     <>
-      <Nav email={instructor.email} role="INSTRUCTOR" />
+      <Nav user={{ email: instructor.email, role: "INSTRUCTOR" }} />
       <main className="mx-auto max-w-5xl flex-1 w-full px-4 py-8 flex flex-col gap-8">
         <h1 className="text-2xl font-semibold text-slate-100">Instructor Overview</h1>
 

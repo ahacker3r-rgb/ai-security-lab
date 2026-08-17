@@ -38,9 +38,16 @@ export default async function Home() {
           RAG poisoning, multi-turn manipulation, and agent tool abuse - to learn how AI applications
           fail and how to design them securely.
         </p>
-        <Link href="/login">
-          <Button size="lg">Start Training</Button>
-        </Link>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <Link href="/login">
+            <Button size="lg">Start Training</Button>
+          </Link>
+          <Link href="/token-lab">
+            <Button size="lg" variant="secondary">
+              Try Token Lab - no sign-in needed
+            </Button>
+          </Link>
+        </div>
       </section>
 
       <section className="mx-auto max-w-5xl px-4 pb-24">

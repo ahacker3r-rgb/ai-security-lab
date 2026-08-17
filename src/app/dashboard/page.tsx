@@ -28,7 +28,7 @@ export default async function DashboardPage() {
 
   return (
     <>
-      <Nav email={user.email} role="STUDENT" />
+      <Nav user={{ email: user.email, role: "STUDENT" }} />
       <main className="mx-auto max-w-6xl flex-1 w-full px-4 py-8 flex flex-col gap-8">
         <div>
           <h1 className="text-2xl font-semibold text-slate-100">Welcome back</h1>
