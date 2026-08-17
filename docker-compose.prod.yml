@@ -1,0 +1,28 @@
+# Production overlay: fronts the app with Caddy for automatic HTTPS and
+# stops publishing the app's port directly to the host. Use together with
+# the base file:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+services:
+  app:
+    ports: [] # only reachable through the caddy service below, not directly from the internet
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - lab-network
+
+volumes:
+  caddy-data:
+  caddy-config:

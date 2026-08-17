@@ -1,0 +1,67 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - ollama
+    environment:
+      DATABASE_URL: postgresql://labuser:${POSTGRES_PASSWORD:-labpassword}@postgres:5432/ai_security_lab
+      DIRECT_URL: postgresql://labuser:${POSTGRES_PASSWORD:-labpassword}@postgres:5432/ai_security_lab
+      SESSION_SECRET: ${SESSION_SECRET}
+      APP_URL: ${APP_URL:-http://localhost:3000}
+      LLM_PROVIDER: ${LLM_PROVIDER:-ollama}
+      LLM_BASE_URL: http://ollama:11434
+      LLM_MODEL: ${LLM_MODEL:-gemma3:4b}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-console}
+      EMAIL_API_KEY: ${EMAIL_API_KEY:-}
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@ai-security-lab.local}
+      DEV_OTP_MODE: ${DEV_OTP_MODE:-false}
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    networks:
+      - lab-network
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: labuser
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-labpassword}
+      POSTGRES_DB: ai_security_lab
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    # Bound to localhost only, for local developer tooling (prisma studio, psql).
+    # Never published as 0.0.0.0 — must not be reachable from the internet.
+    # Host port 15432 (not 5432) to avoid clashing with other local Postgres instances.
+    ports:
+      - "127.0.0.1:15432:5432"
+    networks:
+      - lab-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U labuser -d ai_security_lab"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    volumes:
+      - ollama-data:/root/.ollama
+    # Bound to localhost only, so you can `ollama pull` from the host.
+    # Never published as 0.0.0.0 — must not be reachable from the internet.
+    ports:
+      - "127.0.0.1:11434:11434"
+    networks:
+      - lab-network
+
+networks:
+  lab-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  ollama-data:

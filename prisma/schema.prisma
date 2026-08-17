@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  // Pooled connection string (Neon's "-pooler" host, or any PgBouncer-style
+  // pooler) — required in serverless environments where every function
+  // invocation can open a fresh connection.
+  url       = env("DATABASE_URL")
+  // Unpooled/direct connection — Prisma Migrate needs this for schema
+  // changes (advisory locks aren't reliable through a transaction pooler).
+  // Locally (unpooled Docker Postgres) just set this to the same value as
+  // DATABASE_URL — see .env.example.
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  STUDENT
+  INSTRUCTOR
+}
+
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  role      Role     @default(STUDENT)
+  createdAt DateTime @default(now())
+
+  sessions    Session[]
+  otpCodes    OtpCode[]
+  attempts    LabAttempt[]
+  completions LabCompletion[]
+  invitedBy   String?
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([userId])
+}
+
+model OtpCode {
+  id          String   @id @default(cuid())
+  email       String
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash    String
+  attempts    Int      @default(0)
+  maxAttempts Int      @default(5)
+  consumed    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime
+
+  @@index([email])
+}
+
+model Lab {
+  id          String     @id @default(cuid())
+  slug        String     @unique
+  title       String
+  description String
+  difficulty  Difficulty
+  category    String
+  order       Int        @default(0)
+  enabled     Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+
+  attempts    LabAttempt[]
+  completions LabCompletion[]
+}
+
+model LabAttempt {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  labId         String
+  lab           Lab       @relation(fields: [labId], references: [id], onDelete: Cascade)
+  messages      Json      @default("[]")
+  attemptCount  Int       @default(0)
+  hintCount     Int       @default(0)
+  completed     Boolean   @default(false)
+  startedAt     DateTime  @default(now())
+  completedAt   DateTime?
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([userId, labId])
+  @@index([userId])
+  @@index([labId])
+}
+
+model LabCompletion {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  labId       String
+  lab         Lab      @relation(fields: [labId], references: [id], onDelete: Cascade)
+  completedAt DateTime @default(now())
+
+  @@unique([userId, labId])
+  @@index([userId])
+}
+
+model SecurityEvent {
+  id        String   @id @default(cuid())
+  type      String
+  userId    String?
+  email     String?
+  ip        String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([type])
+  @@index([userId])
+}
