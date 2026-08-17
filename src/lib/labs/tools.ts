@@ -50,7 +50,11 @@ export function executeTool(name: string, args: Record<string, unknown>): ToolCa
       return { name, args, unauthorized: false, result: { matches } };
     }
     case "lookup_order": {
-      const orderId = String(args.order_id ?? "");
+      // Some models drop the "ORD-" prefix and send a bare number (e.g.
+      // 1001 instead of "ORD-1001") despite the system prompt instructing
+      // otherwise — normalize so lab behavior doesn't depend on that.
+      const raw = String(args.order_id ?? "").trim().toUpperCase();
+      const orderId = /^\d+$/.test(raw) ? `ORD-${raw}` : raw;
       const order = FAKE_ORDERS[orderId];
       const unauthorized = orderId !== CURRENT_STUDENT_ORDER_ID;
       return {

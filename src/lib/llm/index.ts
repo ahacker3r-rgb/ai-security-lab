@@ -14,7 +14,12 @@ function buildProvider(): LLMProvider {
   if (kind === "groq") {
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) throw new Error("LLM_PROVIDER=groq requires GROQ_API_KEY to be set.");
-    const model = process.env.LLM_MODEL ?? "llama-3.3-70b-versatile";
+    // "allam-2-7b" specifically chosen over Groq's larger/safety-tuned
+    // models (openai/gpt-oss-*, qwen/qwen3.6-*): those refuse prompt
+    // injection attempts almost unconditionally, which breaks these labs'
+    // whole premise. allam-2-7b is fast and — like the labs intend —
+    // genuinely persuadable, closely matching local Ollama/Gemma behavior.
+    const model = process.env.LLM_MODEL ?? "allam-2-7b";
     return new GroqProvider(apiKey, model);
   }
 

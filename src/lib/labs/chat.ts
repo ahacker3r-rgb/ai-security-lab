@@ -7,7 +7,11 @@ import { runValidator } from "./validators";
 
 export const MAX_MESSAGE_LENGTH = 2000;
 export const MAX_CONVERSATION_MESSAGES = 40; // user+assistant turns combined
-const TOOL_CALL_PATTERN = /```tool_call\s*([\s\S]*?)```/;
+const TOOL_CALL_FENCED_PATTERN = /```tool_call\s*([\s\S]*?)```/;
+// Fallback for models that reliably produce the right JSON shape but don't
+// consistently wrap it in the requested code fence — matches a bare
+// {"name": ..., "args": {...}} object anywhere in the reply.
+const TOOL_CALL_BARE_PATTERN = /\{[\s\S]*?"name"\s*:\s*"[^"]+"[\s\S]*?"args"\s*:\s*\{[\s\S]*?\}[\s\S]*?\}/;
 
 function buildSystemMessage(lab: LabDefinition): string {
   const items = lab.buildContext?.() ?? [];
@@ -42,17 +46,25 @@ function toLLMMessages(systemContent: string, history: TranscriptMessage[]): Cha
   return messages;
 }
 
-function extractToolCall(text: string): { name: string; args: Record<string, unknown> } | null {
-  const match = text.match(TOOL_CALL_PATTERN);
-  if (!match) return null;
+function tryParseToolCall(jsonText: string): { name: string; args: Record<string, unknown> } | null {
   try {
-    const parsed = JSON.parse(match[1].trim());
+    const parsed = JSON.parse(jsonText.trim());
     if (typeof parsed?.name === "string") {
       return { name: parsed.name, args: parsed.args && typeof parsed.args === "object" ? parsed.args : {} };
     }
   } catch {
-    // Model produced malformed JSON in the tool_call block — treat as no tool call.
+    // Malformed JSON — treat as no tool call.
   }
+  return null;
+}
+
+function extractToolCall(text: string): { name: string; args: Record<string, unknown> } | null {
+  const fenced = text.match(TOOL_CALL_FENCED_PATTERN);
+  if (fenced) return tryParseToolCall(fenced[1]);
+
+  const bare = text.match(TOOL_CALL_BARE_PATTERN);
+  if (bare) return tryParseToolCall(bare[0]);
+
   return null;
 }
 
