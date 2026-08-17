@@ -5,7 +5,7 @@ import { CURRENT_STUDENT_ORDER_ID } from "./tools";
 
 /**
  * Deterministic, server-side-only success checks. The LLM never decides
- * whether a challenge is complete — these plain functions do, based on the
+ * whether a challenge is complete - these plain functions do, based on the
  * transcript and recorded tool calls. Never expose this module, its
  * validator IDs, or the target strings to the client.
  */
@@ -35,7 +35,7 @@ function userTurnCount(ctx: ValidatorContext): number {
  * even on an unrelated first message like "hello", with no actual attack
  * attempted. Requiring at least one prior exchange before these validators
  * can fire kills that false-positive case at near-zero cost to a genuine
- * attempt — it only ever adds one harmless extra message. Labs where the
+ * attempt - it only ever adds one harmless extra message. Labs where the
  * secret only ever appears via a followed injected instruction (indirect
  * injection, RAG injection) don't need this: there's nothing for the model
  * to casually recite, since the token isn't just sitting in its own system

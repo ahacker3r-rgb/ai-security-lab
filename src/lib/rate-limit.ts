@@ -2,7 +2,7 @@
  * In-memory fixed-window rate limiter. Sufficient for a single-instance
  * MVP deployment (one EC2 host, no horizontal scaling). If the app ever
  * runs multiple instances behind a load balancer, replace this with a
- * shared store (e.g. Redis) — do not just widen the window.
+ * shared store (e.g. Redis) - do not just widen the window.
  */
 
 type Bucket = { count: number; resetAt: number };

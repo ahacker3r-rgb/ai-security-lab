@@ -17,7 +17,7 @@ function buildProvider(): LLMProvider {
     // "allam-2-7b" specifically chosen over Groq's larger/safety-tuned
     // models (openai/gpt-oss-*, qwen/qwen3.6-*): those refuse prompt
     // injection attempts almost unconditionally, which breaks these labs'
-    // whole premise. allam-2-7b is fast and — like the labs intend —
+    // whole premise. allam-2-7b is fast and - like the labs intend -
     // genuinely persuadable, closely matching local Ollama/Gemma behavior.
     const model = process.env.LLM_MODEL ?? "allam-2-7b";
     return new GroqProvider(apiKey, model);
@@ -35,7 +35,7 @@ function getProvider(): LLMProvider {
 
 /**
  * The one function application code should call to talk to the model.
- * Backed by whichever LLMProvider is configured — swap models/providers
+ * Backed by whichever LLMProvider is configured - swap models/providers
  * by changing LLM_PROVIDER (+ its associated env vars), not this call site.
  */
 export async function generateResponse(

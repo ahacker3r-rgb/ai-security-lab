@@ -111,7 +111,7 @@ export default async function DashboardPage() {
                         <p className="text-sm text-slate-400">{lab.description}</p>
                         <div className="flex items-center justify-between text-xs text-slate-500">
                           <span className="flex items-center gap-1">
-                            <Clock size={12} /> {getLabDefinition(lab.slug)?.estimatedTime ?? "—"}
+                            <Clock size={12} /> {getLabDefinition(lab.slug)?.estimatedTime ?? "-"}
                           </span>
                           <span>{attempt?.attemptCount ?? 0} attempts</span>
                         </div>

@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: result.error }, { status: 429 });
   }
 
-  // Deliberately generic response — never confirms/denies whether this
+  // Deliberately generic response - never confirms/denies whether this
   // email is registered, and never returns the OTP itself.
   return NextResponse.json({ ok: true, message: "If that email is valid, a code has been sent." });
 }

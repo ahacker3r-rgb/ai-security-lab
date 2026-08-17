@@ -31,7 +31,7 @@ export default async function InstructorPage() {
               <CardTitle>Students</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col divide-y divide-slate-800">
-              {students.length === 0 && <p className="text-sm text-slate-500 py-2">No students yet — invite one below.</p>}
+              {students.length === 0 && <p className="text-sm text-slate-500 py-2">No students yet - invite one below.</p>}
               {students.map((s) => (
                 <Link
                   key={s.id}

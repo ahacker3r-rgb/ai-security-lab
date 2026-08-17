@@ -8,7 +8,7 @@ const utf8Encoder = new TextEncoder();
  * token's independently-decoded text. Decoding each token in isolation
  * (rather than diffing cumulative decodes) is what correctly surfaces
  * byte-level fragments as fragments instead of silently smoothing them
- * into neighboring tokens — the fragmentation itself is the point of a
+ * into neighboring tokens - the fragmentation itself is the point of a
  * tokenization visualizer.
  */
 export function buildNormalizedTokens(ids: number[], decodeSingle: (id: number) => string): NormalizedToken[] {

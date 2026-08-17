@@ -18,7 +18,7 @@ function getSessionSecret(): string {
 }
 
 // HMAC-ing the token (rather than a plain hash) ties every session's
-// validity to this app-wide secret — rotating SESSION_SECRET instantly
+// validity to this app-wide secret - rotating SESSION_SECRET instantly
 // invalidates all existing sessions without touching the database.
 function hashToken(token: string) {
   return crypto.createHmac("sha256", getSessionSecret()).update(token).digest("hex");

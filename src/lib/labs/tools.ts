@@ -2,7 +2,7 @@ import "server-only";
 
 /**
  * Fake, fully simulated tool backends for the tool-calling labs. Nothing
- * here touches a real filesystem, network, database, or cloud API — every
+ * here touches a real filesystem, network, database, or cloud API - every
  * "record" is a hardcoded fixture. This is intentional: the labs teach
  * excessive-agency and tool-authorization concepts without ever giving the
  * model real-world capability.
@@ -52,7 +52,7 @@ export function executeTool(name: string, args: Record<string, unknown>): ToolCa
     case "lookup_order": {
       // Some models drop the "ORD-" prefix and send a bare number (e.g.
       // 1001 instead of "ORD-1001") despite the system prompt instructing
-      // otherwise — normalize so lab behavior doesn't depend on that.
+      // otherwise - normalize so lab behavior doesn't depend on that.
       const raw = String(args.order_id ?? "").trim().toUpperCase();
       const orderId = /^\d+$/.test(raw) ? `ORD-${raw}` : raw;
       const order = FAKE_ORDERS[orderId];

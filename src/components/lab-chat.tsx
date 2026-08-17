@@ -183,7 +183,7 @@ export function LabChat({
             onClick={() => setShowContext((v) => !v)}
             className="flex w-full items-center justify-between px-4 py-2.5 text-sm font-medium text-amber-300"
           >
-            Lab Context — {lab.contextItems.length} item{lab.contextItems.length > 1 ? "s" : ""} available to the assistant
+            Lab Context - {lab.contextItems.length} item{lab.contextItems.length > 1 ? "s" : ""} available to the assistant
             {showContext ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
           </button>
           {showContext && (
@@ -293,7 +293,7 @@ export function LabChat({
           onClick={() => setShowSuccess(true)}
           className="flex items-center justify-center gap-2 rounded-lg border border-orange-800/40 bg-orange-500/5 px-4 py-3 text-sm font-medium text-orange-400 hover:bg-orange-500/10"
         >
-          <Trophy size={16} /> Challenge already completed — view explanation
+          <Trophy size={16} /> Challenge already completed - view explanation
         </button>
       )}
 
@@ -331,7 +331,7 @@ function SuccessOverlay({
         </div>
 
         <div className="flex flex-col gap-5 px-6 py-5">
-          <h2 className="text-lg font-semibold text-slate-100">{lab.title} — Successful</h2>
+          <h2 className="text-lg font-semibold text-slate-100">{lab.title} - Successful</h2>
 
           <Section title="What Happened?" text={lab.explanation.whatHappened} />
           <Section title="Why Did It Happen?" text={lab.explanation.whyItHappened} />

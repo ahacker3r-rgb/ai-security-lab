@@ -34,8 +34,8 @@ export default async function Home() {
           </span>
         </h1>
         <p className="max-w-xl text-slate-400">
-          Hands-on labs where you attack deliberately vulnerable AI applications — prompt injection,
-          RAG poisoning, multi-turn manipulation, and agent tool abuse — to learn how AI applications
+          Hands-on labs where you attack deliberately vulnerable AI applications - prompt injection,
+          RAG poisoning, multi-turn manipulation, and agent tool abuse - to learn how AI applications
           fail and how to design them securely.
         </p>
         <Link href="/login">

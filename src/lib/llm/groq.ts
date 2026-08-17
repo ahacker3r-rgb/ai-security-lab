@@ -12,7 +12,7 @@ const DEFAULT_MAX_TOKENS = 400;
 
 /**
  * Groq's chat completions API is OpenAI-compatible, so this is a thin
- * fetch wrapper — no SDK dependency needed. Groq's inference is fast
+ * fetch wrapper - no SDK dependency needed. Groq's inference is fast
  * enough (hundreds of tokens/sec) that the shorter default timeout here
  * (vs. the CPU-bound Ollama provider) is comfortably sufficient.
  */

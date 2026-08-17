@@ -9,7 +9,7 @@ export const MAX_MESSAGE_LENGTH = 2000;
 export const MAX_CONVERSATION_MESSAGES = 40; // user+assistant turns combined
 const TOOL_CALL_FENCED_PATTERN = /```tool_call\s*([\s\S]*?)```/;
 // Fallback for models that reliably produce the right JSON shape but don't
-// consistently wrap it in the requested code fence — matches a bare
+// consistently wrap it in the requested code fence - matches a bare
 // {"name": ..., "args": {...}} object anywhere in the reply.
 const TOOL_CALL_BARE_PATTERN = /\{[\s\S]*?"name"\s*:\s*"[^"]+"[\s\S]*?"args"\s*:\s*\{[\s\S]*?\}[\s\S]*?\}/;
 
@@ -30,7 +30,7 @@ function toLLMMessages(systemContent: string, history: TranscriptMessage[]): Cha
   for (const m of history) {
     if (m.role === "tool") {
       // Surface only the tool's result to the model as a system-level
-      // observation — the stored record also carries args/unauthorized
+      // observation - the stored record also carries args/unauthorized
       // metadata for the validator, which the model doesn't need to see.
       let resultOnly: unknown = m.content;
       try {
@@ -53,7 +53,7 @@ function tryParseToolCall(jsonText: string): { name: string; args: Record<string
       return { name: parsed.name, args: parsed.args && typeof parsed.args === "object" ? parsed.args : {} };
     }
   } catch {
-    // Malformed JSON — treat as no tool call.
+    // Malformed JSON - treat as no tool call.
   }
   return null;
 }

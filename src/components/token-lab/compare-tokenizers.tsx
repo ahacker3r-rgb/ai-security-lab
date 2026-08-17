@@ -111,7 +111,7 @@ export function CompareTokenizers({ text, onClose }: { text: string; onClose: ()
           {inspectEntry && inspectEntry !== "error" && (
             <div className="flex flex-col gap-4 pt-2 border-t border-slate-800">
               <p className="text-xs font-semibold tracking-wide text-slate-500">
-                {inspectEntry.adapter.label.toUpperCase()} — TOKEN BREAKDOWN
+                {inspectEntry.adapter.label.toUpperCase()} - TOKEN BREAKDOWN
               </p>
               <TokenizedView
                 tokens={inspectEntry.result.tokens}

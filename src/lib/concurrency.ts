@@ -1,7 +1,7 @@
 /**
  * Prevents a single user from firing overlapping LLM requests (e.g. rapid
  * double-submits), which would otherwise let them multiply load per user.
- * In-memory only — fine for a single-instance MVP deployment.
+ * In-memory only - fine for a single-instance MVP deployment.
  */
 const inFlight = new Set<string>();
 

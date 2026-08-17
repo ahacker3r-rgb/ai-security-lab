@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 
 /**
  * Security-relevant event types. Never pass OTP values, session tokens,
- * API keys, or raw credentials in `metadata` — this table is queried by
+ * API keys, or raw credentials in `metadata` - this table is queried by
  * instructors and may be exported.
  */
 export type SecurityEventType =

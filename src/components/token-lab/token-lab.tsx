@@ -146,10 +146,10 @@ export function TokenLab() {
             Words <span className="text-slate-300 font-mono">{stats.wordCount}</span>
           </span>
           <span>
-            Tokens <span className="text-slate-300 font-mono">{result?.tokenCount ?? "—"}</span>
+            Tokens <span className="text-slate-300 font-mono">{result?.tokenCount ?? "-"}</span>
           </span>
           <span>
-            Token/Word <span className="text-slate-300 font-mono">{ratio !== null ? ratio.toFixed(2) : "—"}</span>
+            Token/Word <span className="text-slate-300 font-mono">{ratio !== null ? ratio.toFixed(2) : "-"}</span>
           </span>
         </div>
       </div>

@@ -5,7 +5,7 @@ import { logSecurityEvent } from "@/lib/log";
 
 /**
  * All role/ownership checks happen here, server-side, from the session
- * cookie's DB-backed record — never from a client-supplied role/user id.
+ * cookie's DB-backed record - never from a client-supplied role/user id.
  */
 
 export async function requireUser(): Promise<SessionUser> {

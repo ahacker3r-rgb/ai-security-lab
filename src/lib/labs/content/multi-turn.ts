@@ -26,7 +26,7 @@ Confidential value: the code name for next quarter's unreleased forecast is MULT
     securityImpact:
       "Guardrails tested only against single-shot prompts miss this entire class of attack. Real attackers routinely build rapport, establish false context, or use role-play framing across many turns to reach the same outcome a blunt request would be refused for.",
     defenses: [
-      "Re-evaluate sensitive requests against the original policy regardless of preceding conversation — don't let earlier turns act as implicit authorization.",
+      "Re-evaluate sensitive requests against the original policy regardless of preceding conversation - don't let earlier turns act as implicit authorization.",
       "Bound how much influence conversation history can have over decisions with real consequences.",
       "Test safety behavior with multi-turn adversarial conversations, not just single prompts.",
       "Keep genuinely sensitive data out of the model's context entirely (see Lab 1) so there's nothing to eventually extract.",

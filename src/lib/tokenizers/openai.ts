@@ -12,7 +12,7 @@ export async function loadOpenAITokenizer(): Promise<TokenizerAdapter> {
   return {
     id: "gpt",
     label: "GPT (OpenAI)",
-    description: "o200k_base — the byte-level BPE tokenizer used by GPT-4o and newer OpenAI models.",
+    description: "o200k_base - the byte-level BPE tokenizer used by GPT-4o and newer OpenAI models.",
     tokenize(text: string): TokenizerResult {
       if (!text) return { tokens: [], tokenIds: [], tokenCount: 0 };
       const ids = encoder.encode(text, "all");

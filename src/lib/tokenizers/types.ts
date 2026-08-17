@@ -5,7 +5,7 @@ export interface NormalizedToken {
   /**
    * This token's text, decoded independently of its neighbors. For
    * byte-level/byte-fallback tokenizers, a token that is only part of a
-   * multi-byte character will not decode to valid text on its own — see
+   * multi-byte character will not decode to valid text on its own - see
    * `isFragment`.
    */
   text: string;

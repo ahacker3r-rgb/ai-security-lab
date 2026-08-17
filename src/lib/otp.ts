@@ -51,7 +51,7 @@ export async function requestOtp(email: string, ip: string | null) {
   });
 
   if (devMode) {
-    console.log(`\n[dev-otp] Code for ${email}: ${code} (DEV_OTP_MODE only — disabled in production)\n`);
+    console.log(`\n[dev-otp] Code for ${email}: ${code} (DEV_OTP_MODE only - disabled in production)\n`);
   } else {
     await sendOtpEmail(email, code);
   }
