@@ -45,3 +45,6 @@ docker-compose.override.yml
 
 # Claude Code harness state (not part of the app)
 .claude/
+
+.vercel
+.env*
