@@ -4,10 +4,11 @@ import { prisma } from "@/lib/prisma";
 import { createSession } from "@/lib/session";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { logSecurityEvent } from "@/lib/log";
-import { getClientIp, isValidIdentifier, normalizeIdentifier } from "@/lib/http";
+import { getClientIp, isValidEmail, isValidPhone, normalizePhone } from "@/lib/http";
 
 const MAX_ATTEMPTS_PER_WINDOW = 5;
 const WINDOW_MS = 15 * 60 * 1000;
+const MAX_NAME_LENGTH = 100;
 
 function codeMatches(submitted: string, expected: string): boolean {
   const a = Buffer.from(submitted.padEnd(expected.length, "\0"));
@@ -17,12 +18,13 @@ function codeMatches(submitted: string, expected: string): boolean {
 }
 
 /**
- * Alternative to email-OTP sign-in: identifier (email or phone) + a static
- * code the instructor shares with the class (ACCESS_CODE env var). Trades
- * proof-of-ownership of the identifier for zero email-delivery dependency -
- * appropriate for a low-stakes classroom tool, not a general auth pattern.
- * Since the code never expires, rate limiting here is the primary defense
- * against brute force, not a convenience.
+ * Alternative to email-OTP sign-in: name + email + phone + a static code
+ * the instructor shares with the class (ACCESS_CODE env var), doubling as
+ * a lead-capture form the instructor can review later. Trades proof of
+ * identifier ownership for zero email-delivery dependency - appropriate
+ * for a low-stakes classroom tool, not a general auth pattern. Since the
+ * code never expires, rate limiting here is the primary defense against
+ * brute force, not a convenience.
  */
 export async function POST(req: NextRequest) {
   const accessCode = process.env.ACCESS_CODE;
@@ -31,42 +33,50 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json().catch(() => null);
-  const identifierRaw = typeof body?.identifier === "string" ? body.identifier.trim() : "";
+  const name = typeof body?.name === "string" ? body.name.trim().slice(0, MAX_NAME_LENGTH) : "";
+  const emailRaw = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
+  const phoneRaw = typeof body?.phone === "string" ? body.phone.trim() : "";
   const code = typeof body?.code === "string" ? body.code.trim() : "";
 
-  if (!isValidIdentifier(identifierRaw)) {
-    return NextResponse.json({ ok: false, error: "Enter a valid email or phone number." }, { status: 400 });
+  if (!name) {
+    return NextResponse.json({ ok: false, error: "Enter your name." }, { status: 400 });
+  }
+  if (!isValidEmail(emailRaw)) {
+    return NextResponse.json({ ok: false, error: "Enter a valid email address." }, { status: 400 });
+  }
+  if (!isValidPhone(phoneRaw)) {
+    return NextResponse.json({ ok: false, error: "Enter a valid phone number." }, { status: 400 });
   }
   if (!code) {
     return NextResponse.json({ ok: false, error: "Enter the access code." }, { status: 400 });
   }
 
-  const identifier = normalizeIdentifier(identifierRaw);
+  const phone = normalizePhone(phoneRaw);
   const ip = getClientIp(req);
 
-  const identifierLimit = checkRateLimit(`access-login:id:${identifier}`, MAX_ATTEMPTS_PER_WINDOW, WINDOW_MS);
+  const emailLimit = checkRateLimit(`access-login:email:${emailRaw}`, MAX_ATTEMPTS_PER_WINDOW, WINDOW_MS);
   const ipLimit = ip
     ? checkRateLimit(`access-login:ip:${ip}`, MAX_ATTEMPTS_PER_WINDOW * 4, WINDOW_MS)
     : { allowed: true };
 
-  if (!identifierLimit.allowed || !ipLimit.allowed) {
-    await logSecurityEvent({ type: "otp_rate_limited", email: identifier, ip, metadata: { flow: "access-code" } });
+  if (!emailLimit.allowed || !ipLimit.allowed) {
+    await logSecurityEvent({ type: "otp_rate_limited", email: emailRaw, ip, metadata: { flow: "access-code" } });
     return NextResponse.json({ ok: false, error: "Too many attempts. Please try again later." }, { status: 429 });
   }
 
   if (!codeMatches(code, accessCode)) {
-    await logSecurityEvent({ type: "login_failed", email: identifier, ip, metadata: { flow: "access-code" } });
+    await logSecurityEvent({ type: "login_failed", email: emailRaw, ip, metadata: { flow: "access-code" } });
     return NextResponse.json({ ok: false, error: "Invalid access code." }, { status: 401 });
   }
 
   const user = await prisma.user.upsert({
-    where: { email: identifier },
-    update: {},
-    create: { email: identifier, role: "STUDENT" },
+    where: { email: emailRaw },
+    update: { name, phone },
+    create: { email: emailRaw, name, phone, role: "STUDENT" },
   });
 
   await createSession(user.id);
-  await logSecurityEvent({ type: "otp_verified", email: identifier, ip, metadata: { flow: "access-code" } });
+  await logSecurityEvent({ type: "otp_verified", email: emailRaw, ip, metadata: { flow: "access-code" } });
 
   return NextResponse.json({ ok: true, role: user.role });
 }

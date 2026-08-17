@@ -22,8 +22,11 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
       <Nav user={{ email: instructor.email, role: "INSTRUCTOR" }} />
       <main className="mx-auto max-w-3xl flex-1 w-full px-4 py-8 flex flex-col gap-6">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-100">{student.email}</h1>
-          <p className="text-sm text-slate-500">Student progress</p>
+          <h1 className="text-2xl font-semibold text-slate-100">{student.name ?? student.email}</h1>
+          <p className="text-sm text-slate-500">
+            {student.email}
+            {student.phone ? ` · ${student.phone}` : ""}
+          </p>
         </div>
 
         <Card>

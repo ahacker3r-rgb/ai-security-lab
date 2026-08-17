@@ -13,6 +13,8 @@ export async function GET() {
     select: {
       id: true,
       email: true,
+      name: true,
+      phone: true,
       createdAt: true,
       _count: { select: { completions: true } },
     },
@@ -24,6 +26,8 @@ export async function GET() {
     students: students.map((s) => ({
       id: s.id,
       email: s.email,
+      name: s.name,
+      phone: s.phone,
       createdAt: s.createdAt,
       completed: s._count.completions,
     })),

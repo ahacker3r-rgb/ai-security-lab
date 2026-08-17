@@ -16,13 +16,11 @@ export function isValidEmail(email: unknown): email is string {
   return typeof email === "string" && email.length <= 254 && EMAIL_RE.test(email);
 }
 
-/** Accepts either an email or a phone number as an account identifier. */
-export function isValidIdentifier(value: unknown): value is string {
-  if (typeof value !== "string" || value.length === 0 || value.length > 254) return false;
-  return EMAIL_RE.test(value) || PHONE_RE.test(value);
+export function isValidPhone(phone: unknown): phone is string {
+  return typeof phone === "string" && PHONE_RE.test(phone);
 }
 
-/** Normalizes an identifier for storage/lookup: lowercase emails, digits-only phones. */
-export function normalizeIdentifier(value: string): string {
-  return EMAIL_RE.test(value) ? value.toLowerCase().trim() : value.replace(/[\s-]/g, "");
+/** Normalizes a phone number for storage: strip spaces/dashes, keep leading +. */
+export function normalizePhone(phone: string): string {
+  return phone.replace(/[\s-]/g, "");
 }

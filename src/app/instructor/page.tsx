@@ -12,8 +12,8 @@ export default async function InstructorPage() {
   const [students, labs, totalLabs] = await Promise.all([
     prisma.user.findMany({
       where: { role: "STUDENT" },
-      orderBy: { createdAt: "asc" },
-      select: { id: true, email: true, _count: { select: { completions: true } } },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, email: true, name: true, phone: true, createdAt: true, _count: { select: { completions: true } } },
     }),
     prisma.lab.findMany({ orderBy: { order: "asc" } }),
     prisma.lab.count({ where: { enabled: true } }),
@@ -26,24 +26,46 @@ export default async function InstructorPage() {
         <h1 className="text-2xl font-semibold text-slate-100">Instructor Overview</h1>
 
         <div className="grid gap-6 lg:grid-cols-3">
-          <Card className="lg:col-span-2">
+          <Card className="lg:col-span-2 overflow-hidden">
             <CardHeader>
-              <CardTitle>Students</CardTitle>
+              <CardTitle>Students &amp; Leads</CardTitle>
+              <p className="text-xs text-slate-500">
+                Name, email, and phone are captured for students who sign in with the class access code.
+              </p>
             </CardHeader>
-            <CardContent className="flex flex-col divide-y divide-slate-800">
-              {students.length === 0 && <p className="text-sm text-slate-500 py-2">No students yet - invite one below.</p>}
-              {students.map((s) => (
-                <Link
-                  key={s.id}
-                  href={`/instructor/students/${s.id}`}
-                  className="flex items-center justify-between py-3 text-sm hover:text-orange-400"
-                >
-                  <span className="text-slate-200">{s.email}</span>
-                  <span className="text-slate-500">
-                    {s._count.completions} / {totalLabs} completed
-                  </span>
-                </Link>
-              ))}
+            <CardContent className="p-0">
+              {students.length === 0 ? (
+                <p className="text-sm text-slate-500 px-5 pb-5">No students yet - invite one below.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-t border-slate-800 text-left text-xs text-slate-500">
+                        <th className="px-5 py-2 font-medium">Name</th>
+                        <th className="px-5 py-2 font-medium">Email</th>
+                        <th className="px-5 py-2 font-medium">Phone</th>
+                        <th className="px-5 py-2 font-medium text-right">Progress</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {students.map((s) => (
+                        <tr key={s.id} className="border-t border-slate-800 hover:bg-slate-900/40">
+                          <td className="px-5 py-3">
+                            <Link href={`/instructor/students/${s.id}`} className="text-slate-200 hover:text-orange-400">
+                              {s.name ?? "-"}
+                            </Link>
+                          </td>
+                          <td className="px-5 py-3 text-slate-400">{s.email}</td>
+                          <td className="px-5 py-3 text-slate-400">{s.phone ?? "-"}</td>
+                          <td className="px-5 py-3 text-right text-slate-500">
+                            {s._count.completions} / {totalLabs}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </CardContent>
           </Card>
 

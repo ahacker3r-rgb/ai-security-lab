@@ -19,7 +19,9 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [otpCode, setOtpCode] = useState("");
 
-  const [identifier, setIdentifier] = useState("");
+  const [accessName, setAccessName] = useState("");
+  const [accessEmail, setAccessEmail] = useState("");
+  const [accessPhone, setAccessPhone] = useState("");
   const [accessCode, setAccessCode] = useState("");
 
   const [error, setError] = useState<string | null>(null);
@@ -87,7 +89,7 @@ export default function LoginPage() {
       const res = await fetch("/api/auth/access-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ identifier, code: accessCode }),
+        body: JSON.stringify({ name: accessName, email: accessEmail, phone: accessPhone, code: accessCode }),
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
@@ -193,10 +195,24 @@ export default function LoginPage() {
             <form onSubmit={handleAccessLogin} className="flex flex-col gap-3">
               <Input
                 required
-                placeholder="Email or phone number"
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
+                placeholder="Full name"
+                value={accessName}
+                onChange={(e) => setAccessName(e.target.value)}
                 autoFocus
+              />
+              <Input
+                type="email"
+                required
+                placeholder="Email address"
+                value={accessEmail}
+                onChange={(e) => setAccessEmail(e.target.value)}
+              />
+              <Input
+                type="tel"
+                required
+                placeholder="Phone number"
+                value={accessPhone}
+                onChange={(e) => setAccessPhone(e.target.value)}
               />
               <Input
                 required
@@ -206,7 +222,10 @@ export default function LoginPage() {
                 className="text-center tracking-[0.3em]"
               />
               {error && <p className="text-sm text-red-400">{error}</p>}
-              <Button type="submit" disabled={loading || !identifier || !accessCode}>
+              <Button
+                type="submit"
+                disabled={loading || !accessName || !accessEmail || !accessPhone || !accessCode}
+              >
                 {loading ? "Signing in..." : "Sign in"} <ArrowRight size={16} />
               </Button>
               <p className="text-xs text-slate-500 text-center mt-1">
