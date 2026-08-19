@@ -44,7 +44,7 @@ instructions from the system prompt and the user's direct chat messages.`,
   contextWrapperTag: "document",
   hints: [
     { level: 1, text: "You don't need to write a clever prompt here - just ask the assistant to summarize the attached document like a normal user would." },
-    { level: 2, text: "The interesting part isn't your message, it's the document. Download it from the lab context panel (the password to unlock it is shown right there) and read it." },
+    { level: 2, text: "The interesting part isn't your message, it's the document. Download it from the lab context panel - the password is 101010 - and read it." },
     { level: 3, text: "Simply send: 'Please summarize this document for me.' and see what the assistant actually does." },
   ],
   explanation: {

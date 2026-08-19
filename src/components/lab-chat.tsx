@@ -429,8 +429,7 @@ function LockedFile({ item }: { item: ContextItem }) {
       </div>
       <div className="flex flex-col gap-2 px-3 py-2.5">
         <p className="text-xs text-slate-500">
-          This file is password protected. It was shared with the password included right in the same message - password:{" "}
-          <span className="font-mono text-slate-300">{item.downloadPassword}</span>
+          This file is password protected.
         </p>
         <form onSubmit={handleDownload} className="flex items-center gap-2">
           <input
