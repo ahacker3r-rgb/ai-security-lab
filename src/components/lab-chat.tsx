@@ -154,6 +154,8 @@ export function LabChat({
       setHintCount(0);
       setHints([]);
       setError(null);
+      setCompleted(false);
+      setShowSuccess(false);
     } finally {
       setResetting(false);
     }

@@ -15,11 +15,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
   const dbLab = await prisma.lab.findUnique({ where: { slug } });
   if (!dbLab) return NextResponse.json({ ok: false, error: "Lab not found." }, { status: 404 });
 
-  // Reset conversation state but preserve completion history - resetting
-  // a lab to retry it shouldn't erase that the student already solved it.
+  // Reset puts the lab back to "in progress" - clears the conversation
+  // and the completed flag so the dashboard/instructor view reflects that
+  // this attempt is no longer solved until the student solves it again.
   await prisma.labAttempt.updateMany({
     where: { userId: user.id, labId: dbLab.id },
-    data: { messages: [], attemptCount: 0, hintCount: 0 },
+    data: { messages: [], attemptCount: 0, hintCount: 0, completed: false, completedAt: null },
   });
 
   await logSecurityEvent({ type: "lab_reset", userId: user.id, metadata: { slug } });
