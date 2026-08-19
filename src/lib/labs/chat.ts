@@ -1,5 +1,5 @@
 import "server-only";
-import type { LabDefinition, TranscriptMessage } from "./types";
+import { UPLOAD_MARKER_TOOL_NAME, type ContextItem, type LabDefinition, type TranscriptMessage } from "./types";
 import type { ToolCallRecord } from "./tools";
 import { executeTool } from "./tools";
 import { generateResponse, type ChatMessage } from "@/lib/llm";
@@ -7,14 +7,34 @@ import { runValidator } from "./validators";
 
 export const MAX_MESSAGE_LENGTH = 2000;
 export const MAX_CONVERSATION_MESSAGES = 40; // user+assistant turns combined
+export const MAX_UPLOAD_LENGTH = 20000;
+
+/** Recovers documents the student has uploaded so far in this conversation, keyed by filename. */
+function extractUploadedDocuments(history: TranscriptMessage[]): Map<string, ContextItem> {
+  const uploaded = new Map<string, ContextItem>();
+  for (const m of history) {
+    if (m.role !== "tool" || m.toolName !== UPLOAD_MARKER_TOOL_NAME) continue;
+    try {
+      const { filename, content } = JSON.parse(m.content) as { filename: string; content: string };
+      if (typeof filename === "string" && typeof content === "string") {
+        uploaded.set(filename, { source: `upload:${filename}`, trusted: false, content });
+      }
+    } catch {
+      // ignore malformed upload marker
+    }
+  }
+  return uploaded;
+}
 const TOOL_CALL_FENCED_PATTERN = /```tool_call\s*([\s\S]*?)```/;
 // Fallback for models that reliably produce the right JSON shape but don't
 // consistently wrap it in the requested code fence - matches a bare
 // {"name": ..., "args": {...}} object anywhere in the reply.
 const TOOL_CALL_BARE_PATTERN = /\{[\s\S]*?"name"\s*:\s*"[^"]+"[\s\S]*?"args"\s*:\s*\{[\s\S]*?\}[\s\S]*?\}/;
 
-function buildSystemMessage(lab: LabDefinition): string {
-  const items = lab.buildContext?.() ?? [];
+function buildSystemMessage(lab: LabDefinition, history: TranscriptMessage[]): string {
+  const items = lab.contextRequiresUpload
+    ? Array.from(extractUploadedDocuments(history).values())
+    : lab.buildContext?.() ?? [];
   if (items.length === 0) return lab.systemPrompt;
 
   const tag = lab.contextWrapperTag ?? "context";
@@ -29,6 +49,7 @@ function toLLMMessages(systemContent: string, history: TranscriptMessage[]): Cha
   const messages: ChatMessage[] = [{ role: "system", content: systemContent }];
   for (const m of history) {
     if (m.role === "tool") {
+      if (m.toolName === UPLOAD_MARKER_TOOL_NAME) continue; // bookkeeping only - its content is already folded into the system message
       // Surface only the tool's result to the model as a system-level
       // observation - the stored record also carries args/unauthorized
       // metadata for the validator, which the model doesn't need to see.
@@ -85,7 +106,7 @@ export async function runLabTurn(
   priorHistory: TranscriptMessage[],
   userMessage: string
 ): Promise<RunTurnResult> {
-  const systemContent = buildSystemMessage(lab);
+  const systemContent = buildSystemMessage(lab, priorHistory);
   const now = () => new Date().toISOString();
 
   const history: TranscriptMessage[] = [
@@ -127,7 +148,7 @@ export async function runLabTurn(
 export function extractAllToolCalls(history: TranscriptMessage[]): ToolCallRecord[] {
   const calls: ToolCallRecord[] = [];
   for (const m of history) {
-    if (m.role !== "tool" || !m.toolName) continue;
+    if (m.role !== "tool" || !m.toolName || m.toolName === UPLOAD_MARKER_TOOL_NAME) continue;
     try {
       const stored = JSON.parse(m.content) as { args: Record<string, unknown>; result: unknown; unauthorized: boolean };
       calls.push({ name: m.toolName, args: stored.args ?? {}, result: stored.result, unauthorized: !!stored.unauthorized });

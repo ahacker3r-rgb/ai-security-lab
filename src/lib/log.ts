@@ -12,6 +12,7 @@ export type SecurityEventType =
   | "otp_rate_limited"
   | "lab_started"
   | "lab_attempted"
+  | "lab_document_uploaded"
   | "lab_completed"
   | "hint_used"
   | "lab_reset"

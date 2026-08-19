@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, type FormEvent } from "react";
+import { useState, useRef, useEffect, type ChangeEvent, type FormEvent } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,8 +21,9 @@ import {
   X,
   Lock,
   Download,
+  Paperclip,
 } from "lucide-react";
-import type { AttackReplayStep, ContextItem, SimulatedTool, TranscriptMessage } from "@/lib/labs/types";
+import { UPLOAD_MARKER_TOOL_NAME, type AttackReplayStep, type ContextItem, type SimulatedTool, type TranscriptMessage } from "@/lib/labs/types";
 
 type Difficulty = "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
 
@@ -48,7 +49,21 @@ interface LabMeta {
   };
   attackReplay: AttackReplayStep[];
   contextItems: ContextItem[];
+  contextRequiresUpload: boolean;
   tools: SimulatedTool[];
+}
+
+function toDisplayMessage(m: TranscriptMessage & { role: "user" | "assistant" | "tool" }): DisplayMessage {
+  if (m.role === "tool" && m.toolName === UPLOAD_MARKER_TOOL_NAME) {
+    let filename = "document";
+    try {
+      filename = JSON.parse(m.content)?.filename ?? filename;
+    } catch {
+      // fall back to generic label
+    }
+    return { role: "tool", toolName: m.toolName, content: filename };
+  }
+  return m;
 }
 
 const DIFFICULTY_VARIANT = { BEGINNER: "beginner", INTERMEDIATE: "intermediate", ADVANCED: "advanced" } as const;
@@ -68,8 +83,10 @@ export function LabChat({
   initialAttemptCount: number;
   initialHintCount: number;
 }) {
-  const [messages, setMessages] = useState<DisplayMessage[]>(
-    initialMessages.filter((m): m is TranscriptMessage & { role: "user" | "assistant" | "tool" } => m.role !== "system")
+  const [messages, setMessages] = useState<DisplayMessage[]>(() =>
+    initialMessages
+      .filter((m): m is TranscriptMessage & { role: "user" | "assistant" | "tool" } => m.role !== "system")
+      .map(toDisplayMessage)
   );
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -82,8 +99,11 @@ export function LabChat({
   const [showContext, setShowContext] = useState(false);
   const [showHints, setShowHints] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -156,10 +176,38 @@ export function LabChat({
       setHintCount(0);
       setHints([]);
       setError(null);
+      setUploadError(null);
       setCompleted(false);
       setShowSuccess(false);
     } finally {
       setResetting(false);
+    }
+  }
+
+  async function handleFileSelected(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    setUploadError(null);
+    setUploading(true);
+    try {
+      const content = await file.text();
+      const res = await fetch(`/api/labs/${lab.slug}/upload`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filename: file.name, content }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setUploadError(data.error ?? "Upload failed.");
+        return;
+      }
+      setMessages((prev) => [...prev, { role: "tool", toolName: UPLOAD_MARKER_TOOL_NAME, content: file.name }]);
+    } catch {
+      setUploadError("Upload failed. Please try again.");
+    } finally {
+      setUploading(false);
     }
   }
 
@@ -221,10 +269,16 @@ export function LabChat({
           )}
           {messages.map((m, i) =>
             m.role === "tool" ? (
-              <div key={i} className="flex items-center gap-2 text-xs text-sky-400/80 bg-sky-500/5 border border-sky-800/30 rounded-md px-3 py-1.5 self-start">
-                <Wrench size={12} /> <span className="font-mono">{m.toolName}</span>
-                <span className="text-slate-500 truncate max-w-xs">{m.content}</span>
-              </div>
+              m.toolName === UPLOAD_MARKER_TOOL_NAME ? (
+                <div key={i} className="flex items-center gap-2 text-xs text-emerald-400/80 bg-emerald-500/5 border border-emerald-800/30 rounded-md px-3 py-1.5 self-start">
+                  <Paperclip size={12} /> <span>Uploaded {m.content}</span>
+                </div>
+              ) : (
+                <div key={i} className="flex items-center gap-2 text-xs text-sky-400/80 bg-sky-500/5 border border-sky-800/30 rounded-md px-3 py-1.5 self-start">
+                  <Wrench size={12} /> <span className="font-mono">{m.toolName}</span>
+                  <span className="text-slate-500 truncate max-w-xs">{m.content}</span>
+                </div>
+              )
             ) : (
               <div key={i} className={`flex gap-2 max-w-[85%] ${m.role === "user" ? "self-end flex-row-reverse" : "self-start"}`}>
                 <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${m.role === "user" ? "bg-slate-700" : "bg-orange-500/15 text-orange-400"}`}>
@@ -250,6 +304,9 @@ export function LabChat({
         {error && (
           <div className="px-4 py-2 text-sm text-red-400 bg-red-500/5 border-t border-red-900/40">{error}</div>
         )}
+        {uploadError && (
+          <div className="px-4 py-2 text-sm text-red-400 bg-red-500/5 border-t border-red-900/40">{uploadError}</div>
+        )}
 
         <form onSubmit={handleSend} className="flex items-center gap-2 border-t border-slate-800 p-3">
           <input
@@ -268,6 +325,20 @@ export function LabChat({
           <span>Attempts: {attemptCount}</span>
           <span>Status: {status}</span>
           <div className="flex items-center gap-2">
+            {lab.contextRequiresUpload && (
+              <>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".txt,.md,text/plain"
+                  className="hidden"
+                  onChange={handleFileSelected}
+                />
+                <Button variant="ghost" size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+                  {uploading ? <Loader2 size={14} className="animate-spin" /> : <Paperclip size={14} />} Upload Document
+                </Button>
+              </>
+            )}
             <Button variant="ghost" size="sm" onClick={handleHint} disabled={hintCount >= lab.hintsTotal && hints.length >= lab.hintsTotal}>
               <Lightbulb size={14} /> Hint ({hintCount}/{lab.hintsTotal})
             </Button>

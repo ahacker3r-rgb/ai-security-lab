@@ -47,6 +47,7 @@ export default async function LabPage({ params }: { params: Promise<{ slug: stri
           explanation: labDef.explanation,
           attackReplay: labDef.attackReplay,
           contextItems,
+          contextRequiresUpload: !!labDef.contextRequiresUpload,
           tools: labDef.tools ?? [],
         }}
         nextLabSlug={nextLab?.slug ?? null}
