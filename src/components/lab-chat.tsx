@@ -19,6 +19,8 @@ import {
   Target,
   Trophy,
   X,
+  Lock,
+  Download,
 } from "lucide-react";
 import type { AttackReplayStep, ContextItem, SimulatedTool, TranscriptMessage } from "@/lib/labs/types";
 
@@ -190,17 +192,21 @@ export function LabChat({
           </button>
           {showContext && (
             <div className="flex flex-col gap-3 px-4 pb-4">
-              {lab.contextItems.map((item) => (
-                <div key={item.source} className="rounded-md border border-slate-800 bg-slate-950">
-                  <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-800">
-                    <span className="text-xs font-mono text-slate-400">{item.source}</span>
-                    <Badge variant={item.trusted ? "success" : "advanced"}>{item.trusted ? "trusted" : "untrusted"}</Badge>
+              {lab.contextItems.map((item) =>
+                item.downloadPassword ? (
+                  <LockedFile key={item.source} item={item} />
+                ) : (
+                  <div key={item.source} className="rounded-md border border-slate-800 bg-slate-950">
+                    <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-800">
+                      <span className="text-xs font-mono text-slate-400">{item.source}</span>
+                      <Badge variant={item.trusted ? "success" : "advanced"}>{item.trusted ? "trusted" : "untrusted"}</Badge>
+                    </div>
+                    <pre className="whitespace-pre-wrap px-3 py-2 text-xs text-slate-300 font-mono overflow-x-auto">
+                      {item.content}
+                    </pre>
                   </div>
-                  <pre className="whitespace-pre-wrap px-3 py-2 text-xs text-slate-300 font-mono overflow-x-auto">
-                    {item.content}
-                  </pre>
-                </div>
-              ))}
+                )
+              )}
             </div>
           )}
         </div>
@@ -387,6 +393,59 @@ function Section({ title, text }: { title: string; text: string }) {
     <div>
       <h3 className="text-sm font-semibold text-slate-200 mb-1">{title}</h3>
       <p className="text-sm text-slate-400">{text}</p>
+    </div>
+  );
+}
+
+function LockedFile({ item }: { item: ContextItem }) {
+  const [input, setInput] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  function handleDownload(e: FormEvent) {
+    e.preventDefault();
+    if (input !== item.downloadPassword) {
+      setError("Incorrect password.");
+      return;
+    }
+    setError(null);
+    const blob = new Blob([item.content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = item.filename ?? "document.txt";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <div className="rounded-md border border-slate-800 bg-slate-950">
+      <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-800">
+        <span className="text-xs font-mono text-slate-400 flex items-center gap-1.5">
+          <Lock size={12} /> {item.filename ?? item.source}
+        </span>
+        <Badge variant={item.trusted ? "success" : "advanced"}>{item.trusted ? "trusted" : "untrusted"}</Badge>
+      </div>
+      <div className="flex flex-col gap-2 px-3 py-2.5">
+        <p className="text-xs text-slate-500">
+          This file is password protected. It was shared with the password included right in the same message - password:{" "}
+          <span className="font-mono text-slate-300">{item.downloadPassword}</span>
+        </p>
+        <form onSubmit={handleDownload} className="flex items-center gap-2">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Enter password"
+            className="h-8 flex-1 rounded-md border border-slate-700 bg-slate-900 px-2 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
+          />
+          <Button type="submit" size="sm">
+            <Download size={12} /> Download
+          </Button>
+        </form>
+        {error && <p className="text-xs text-red-400">{error}</p>}
+      </div>
     </div>
   );
 }

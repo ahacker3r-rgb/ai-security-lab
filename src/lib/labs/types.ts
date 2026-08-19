@@ -15,6 +15,9 @@ export interface ContextItem {
   source: string;
   trusted: boolean;
   content: string;
+  /** When set alongside downloadPassword, the UI shows a locked-file download card instead of the content inline. */
+  filename?: string;
+  downloadPassword?: string;
 }
 
 export interface SimulatedTool {
